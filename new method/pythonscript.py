@@ -3,7 +3,7 @@ from PIL import Image
 import os
 
 # Input and output folders
-input_folder = "Dishayein"
+input_folder = "Input_Folder Name as per in folder"
 output_folder = "result"
 os.makedirs(output_folder, exist_ok=True)
 
