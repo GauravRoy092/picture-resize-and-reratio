@@ -4,14 +4,47 @@ import io
 import zipfile
 import os
 
-st.title("🖼️ Bulk Image Resize & Compress Tool (JPEG ≤ 200KB)")
+# ---------------------------
+# Header and UI Description
+# ---------------------------
+st.markdown("""
+    <style>
+        .title-text {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .desc-text {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #dddddd;
+            text-align: center;
+            padding-bottom: 20px;
+        }
+    </style>
+    <div class="title-text">🎨 Bulk Image Resizer & Compressor (JPEG ≤ 200KB)</div>
+    <div class="desc-text">
+        Resize, optionally crop, and compress your images to under <b>200KB</b> each.<br>
+        Upload up to <b>20 images at a time</b> and download all processed images in a single ZIP.
+    </div>
+""", unsafe_allow_html=True)
 
+# ---------------------------
+# File uploader (limit to 20)
+# ---------------------------
 uploaded_files = st.file_uploader(
-    "Upload multiple images", accept_multiple_files=True,
+    "Upload up to 20 images", accept_multiple_files=True,
     type=["jpg", "jpeg", "png", "webp", "bmp", "tiff"]
 )
 
-# Aspect Ratio
+if uploaded_files and len(uploaded_files) > 20:
+    st.warning("⚠️ You can upload up to 20 images only.")
+    uploaded_files = uploaded_files[:20]
+
+# ---------------------------
+# Aspect Ratio Section
+# ---------------------------
 st.subheader("🔢 Aspect Ratio")
 preset_ratios = {
     "1:1 (Square)": (1, 1),
@@ -20,7 +53,7 @@ preset_ratios = {
     "16:9 (Widescreen)": (16, 9),
     "Custom": None
 }
-preset = st.selectbox("Choose aspect ratio", list(preset_ratios.keys()), index=2)  # Default to "5:4"
+preset = st.selectbox("Choose aspect ratio", list(preset_ratios.keys()), index=2)  # Default to 5:4
 if preset != "Custom":
     aspect_w, aspect_h = preset_ratios[preset]
 else:
@@ -31,19 +64,21 @@ else:
         aspect_h = st.number_input("Aspect Ratio Height", value=4)
 target_ratio = aspect_w / aspect_h
 
-# Crop toggle - disabled by default
+# ---------------------------
+# Crop and Resize Section
+# ---------------------------
 apply_crop = st.checkbox("✂️ Crop to Aspect Ratio", value=False)
 
-# Resize settings
 st.subheader("📐 Resize Dimensions")
 out_w = st.number_input("Final Width (px)", value=600)
 out_h = st.number_input("Final Height (px)", value=480)
 final_size = (int(out_w), int(out_h))
 
-# File size constraint
+# ---------------------------
+# Image Processing Section
+# ---------------------------
 max_file_size_kb = 200
 
-# Process images
 if st.button("📸 Process Images") and uploaded_files:
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
@@ -65,7 +100,7 @@ if st.button("📸 Process Images") and uploaded_files:
                         box = (0, top, w, top + new_h)
                     img = img.crop(box)
 
-                # Resize image
+                # Resize
                 resized = img.resize(final_size, Image.Resampling.LANCZOS)
 
                 # Compress to JPEG ≤ 200KB
